@@ -3,7 +3,6 @@
 #include "contiki.h"
 #include <stdio.h>  // For printf()
 #include <random.h> // for random_rand()
-#include "calculations.c" // For sqrt(), mean() and std()
 #include "light_module.c" // for get_light()
 #include "logger.c" // for print_float()
 
@@ -12,77 +11,15 @@
 #include "fifo.c" // data structure to hold sensor readings
 #endif
 
-#define BUFFER_SIZE 12
+#ifndef CALC_C
+#define CALC_C
+#include "calculations.c" // For sqrt(), mean() and std()
+#endif
+
+#define BUFFER_SIZE 4
 #define K 12
 #define HIGH_ACTIVITY 500.0f
 #define MEDIUM_ACTIVITY 100.0f
-
-void aggregate(struct fifo *input_vec, unsigned short output_size)
-{
-  unsigned short interval = input_vec->size / output_size;
-  
-  unsigned short i = 0;
-  unsigned short j = 0;
-  
-  printf("[");
-  
-  while(i < output_size){
-    j = 0;
-    float total = 0.0f;
-    while(j < interval){
-      total += fifo_get(input_vec, i*interval+j);
-      j += 1;
-    }
-    print_float(total/interval);
-    printf(" ");
-    i += 1;
-  }
-  
-  printf("]\n");
-}
-
-void print_readings(struct fifo *readings)
-{
-  int i = 0;
-  
-  while(i < readings->size){
-    print_float(readings->arr[i]);
-    printf(" ");
-    i++;
-  }
-  printf("\n");
-}
-
-void print_complex_numbers(struct complex_number nums[], unsigned short size)
-{
-  unsigned short j = 0;
-  
-  printf("[ ");
-  
-  while(j < size){
-    print_float(nums[j].real);
-    printf(" + ");
-    print_float(nums[j].i);
-    printf("i ");
-    j++;
-  }
-  
-  printf("]\n");
-}
-
-void print_arr(float arr[], unsigned short size)
-{
-  unsigned short i = 0;
-  
-  printf("[");
-  
-  while(i < size){
-    print_float(arr[i]);
-    printf(" ");
-    i++;
-  }
-  printf("]\n");
-}
 
 /*---------------------------------------------------------------------------*/
 PROCESS(coursework, "Coursework");
@@ -92,6 +29,9 @@ PROCESS_THREAD(coursework, ev, data)
 {
   static struct etimer timer;
   
+  static float store_array[BUFFER_SIZE];
+  static float aggregation[BUFFER_SIZE];
+  static float x_bar[BUFFER_SIZE];
   static struct complex_number S[BUFFER_SIZE];
   static float R_hat[BUFFER_SIZE];
   
@@ -100,7 +40,6 @@ PROCESS_THREAD(coursework, ev, data)
   static struct fifo reads;
   init_fifo(&reads);
   reads.size = BUFFER_SIZE;
-  static float store_array[BUFFER_SIZE];
   reads.arr = store_array;
   
   static int counter = 0;
@@ -109,6 +48,34 @@ PROCESS_THREAD(coursework, ev, data)
   etimer_set(&timer, CLOCK_CONF_SECOND/2);
   
   if(TEST_MODE){
+    fifo_put(&reads, 1.0f);
+    fifo_put(&reads, 1.3f);
+    fifo_put(&reads, 2.7f);
+    fifo_put(&reads, 3.0f);
+    
+    float u = mean(reads.arr, reads.size);
+    float o2 = std2(reads.arr, reads.size, u);
+    
+    delta_mean(&reads, x_bar, u);
+    
+    printf("X-u:\n");
+    print_arr(x_bar, BUFFER_SIZE);
+    
+    unsigned short k = 0;
+          
+    while(k < BUFFER_SIZE){
+      R_hat[k] = auto_correlation(x_bar, BUFFER_SIZE, k, o2);
+      k++;
+    }
+    
+    printf("Normalised Autocorrelation:\n");
+    print_arr(R_hat, BUFFER_SIZE);
+    
+    DFT(R_hat, S, BUFFER_SIZE);
+          
+    printf("DFT:\n");
+    print_complex_numbers(S, BUFFER_SIZE);
+    
     return;
   }
 
@@ -124,7 +91,8 @@ PROCESS_THREAD(coursework, ev, data)
       counter++;
     } else{
       float u = mean(reads.arr, reads.size);
-      float o = std(reads.arr, reads.size, u);
+      float o2 = std2(reads.arr, reads.size, u);
+      float o = sqrt(o2);
       
       unsigned short elements = BUFFER_SIZE;
       if(o < HIGH_ACTIVITY && o > MEDIUM_ACTIVITY){
@@ -133,20 +101,28 @@ PROCESS_THREAD(coursework, ev, data)
         elements = 1;
       }
       
-      aggregate(&reads, elements);
+      aggregate(&reads, aggregation, elements);
+      
+      print_arr(aggregation, elements);
+      
+      delta_mean(&reads, x_bar, u);
+      
+      print_arr(x_bar, BUFFER_SIZE);
       
       printf("PRE R_hat\n");
       
       unsigned short k = 0;
       
       while(k < BUFFER_SIZE){
-        R_hat[k] = auto_correlation(&reads, k, u, o);
+        R_hat[k] = auto_correlation(x_bar, BUFFER_SIZE, k, o2);
         k++;
       }
       
+      print_arr(R_hat, BUFFER_SIZE);
+      
       printf("PRE DFT\n");
       
-      DFT(R_hat, S, BUFFER_SIZE, u, o);
+      DFT(R_hat, S, BUFFER_SIZE);
       
       printf("DONE DFT\n");
       

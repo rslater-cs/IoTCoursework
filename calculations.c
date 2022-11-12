@@ -50,7 +50,7 @@ float mean(float vec[], unsigned short size)
   return total;
 }
 
-float std(float vec[], unsigned short size, float mn)
+float std2(float vec[], unsigned short size, float mn)
 {
   float total = 0.0f;
   
@@ -64,24 +64,51 @@ float std(float vec[], unsigned short size, float mn)
   
   total /= size;
   
-  total = sqrt(total);
-  
   return total;
 }
 
-float auto_correlation(struct fifo *instance, unsigned short k, float u, float o)
+void aggregate(struct fifo *instance, float result[], unsigned short output_size)
 {
-  unsigned short iterations = instance->size-k;
+  unsigned short interval = instance->size / output_size;
+    
+  unsigned short i = 0;
+  unsigned short j = 0;
+  
+  while(i < output_size){
+    j = 0;
+    result[i] = 0.0f;
+    while(j < interval){
+      result[i] += fifo_get(instance, i*interval+j);
+      j++;
+    }
+    result[i] /= interval;
+    i++;
+  }
+}
+
+void delta_mean(struct fifo *instance, float result[], float u)
+{
+  unsigned short i = 0;
+  
+  while(i < instance->size){
+    result[i] = fifo_get(instance, i)-u;
+    i++;
+  }
+}
+
+float auto_correlation(float mean_diff[], unsigned short size, unsigned short k, float o2)
+{
+  unsigned short iterations = size-k;
   unsigned short i = 0; 
   
   float total = 0.0f;
   
   while(i < iterations){
-    total += (fifo_get(instance, i)-u)*(fifo_get(instance, i+k)-u);
+    total += mean_diff[i]*mean_diff[i+k];
     i++;
   }
   
-  total /= (o*o*iterations);
+  total /= (o2*iterations);
   
   return total;
 }
@@ -128,7 +155,7 @@ float cos(float radians)
   }
 }
 
-struct complex_number DFT_L(float R_hat[], unsigned short size, unsigned short l, float u, float o)
+struct complex_number DFT_L(float R_hat[], unsigned short size, unsigned short l)
 {
   unsigned short k = 0;
   
@@ -137,7 +164,9 @@ struct complex_number DFT_L(float R_hat[], unsigned short size, unsigned short l
   result.i = 0.0f;
   
   while(k < size){
-    float power = (float)(2*k*l)/(float)size;
+    float numerator = (float)(2*k*l);
+    float denominator = (float)size;
+    float power = numerator/denominator;
     power = fmod(power, 2.0f);
     power = power * PI;
     float real = cos(power);
@@ -148,16 +177,19 @@ struct complex_number DFT_L(float R_hat[], unsigned short size, unsigned short l
     k++;
   }
   
+  result.real /= size;
+  result.i /= size;
+  
   return result;
 }
 
-void DFT(float R_hat[], struct complex_number results[], unsigned short size, float u, float o)
+void DFT(float R_hat[], struct complex_number results[], unsigned short size)
 {
   
   unsigned short l = 0;
   
   while(l < size){
-    results[l] = DFT_L(R_hat, size, l, u, o);
+    results[l] = DFT_L(R_hat, size, l);
     l++;
   }
 }

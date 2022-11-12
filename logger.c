@@ -27,11 +27,22 @@ int get_i(float num)
   return num_i;
 }
 
+unsigned short round(uint32_t num){
+  uint32_t base = num/10;
+  uint32_t diff = num-(base*10);
+  if(diff >= 5){
+    return base+1;
+  }
+  return base;
+}
+
 unsigned short get_d(float num){
   if(num > 0.0f){
-    return(10000*(num-(int)num));
+    uint32_t dec = 100000*(num-(int)num);
+    return round(dec);
   }else{
-    return(10000*((int)num-num));
+    uint32_t dec = 100000*((int)num-num);
+    return round(dec);
   }
 }
 

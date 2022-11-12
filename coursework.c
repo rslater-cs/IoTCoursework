@@ -53,6 +53,8 @@ PROCESS_THREAD(coursework, ev, data)
     fifo_put(&reads, 2.7f);
     fifo_put(&reads, 3.0f);
     
+    print_fifo(&reads);
+    
     float u = mean(reads.arr, reads.size);
     float o2 = std2(reads.arr, reads.size, u);
     

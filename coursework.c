@@ -29,14 +29,17 @@ PROCESS_THREAD(coursework, ev, data)
 {
   static struct etimer timer;
   
+  // create arrays for different steps of processing
   static float store_array[BUFFER_SIZE];
   static float aggregation[BUFFER_SIZE];
   static float x_bar[BUFFER_SIZE];
   static struct complex_number S[BUFFER_SIZE];
   static float R_hat[BUFFER_SIZE];
   
+  // start the sensors
   start_light();
   
+  // setup the fifo
   static struct fifo reads;
   init_fifo(&reads);
   reads.size = BUFFER_SIZE;
@@ -45,8 +48,11 @@ PROCESS_THREAD(coursework, ev, data)
   static int counter = 0;
 
   PROCESS_BEGIN();
+  
+  // to gather a sample every 0.5 seconds
   etimer_set(&timer, CLOCK_CONF_SECOND/2);
   
+  // Only for testing validity of calculations
   if(TEST_MODE){
     fifo_put(&reads, 1.0f);
     fifo_put(&reads, 1.3f);
@@ -85,8 +91,7 @@ PROCESS_THREAD(coursework, ev, data)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev=PROCESS_EVENT_TIMER); // wait for an event
     
-//    printf("FIFO_INFO -> A_SIZE:%i, R_SIZE:%u, R_POS:%u, W_POS:%u, EMPTY:%u\n", reads.size, fifo_get_size(&reads), reads.r_pos, reads.w_pos, reads.empty);
-    
+    // gather k light samples
     if(counter < K){
       float light = get_light();
       fifo_put(&reads, light);
@@ -96,6 +101,7 @@ PROCESS_THREAD(coursework, ev, data)
       float o2 = std2(reads.arr, reads.size, u);
       float o = sqrt(o2);
       
+      // decide on aggregation strength based on standard deviation
       unsigned short elements = BUFFER_SIZE;
       if(o < HIGH_ACTIVITY && o > MEDIUM_ACTIVITY){
         elements = 4;
@@ -105,29 +111,30 @@ PROCESS_THREAD(coursework, ev, data)
       
       aggregate(&reads, aggregation, elements);
       
+      printf("Aggregation:\n");
       print_arr(aggregation, elements);
       
+      // pre calculate diff between X and mean for more efficient computation
       delta_mean(&reads, x_bar, u);
       
+      printf("X-u:\n");
       print_arr(x_bar, BUFFER_SIZE);
-      
-      printf("PRE R_hat\n");
       
       unsigned short k = 0;
       
+      // pre calculate normalised autocorrelation for more efficient computation
       while(k < BUFFER_SIZE){
         R_hat[k] = auto_correlation(x_bar, BUFFER_SIZE, k, o2);
         k++;
       }
       
+      printf("Normalised Autocorrelation:\n");
       print_arr(R_hat, BUFFER_SIZE);
       
-      printf("PRE DFT\n");
-      
+      // spectral density
       DFT(R_hat, S, BUFFER_SIZE);
       
-      printf("DONE DFT\n");
-      
+      printf("Spectral Density:\n");
       print_complex_numbers(S, BUFFER_SIZE);
       
       counter = 0;

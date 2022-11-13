@@ -11,6 +11,7 @@ struct complex_number
   float i;
 };
 
+// Appoximation of square root function
 float sqrt(float num)
 {
   float r = num;
@@ -20,6 +21,7 @@ float sqrt(float num)
   float pred = r;
   float estimate = pred*pred;
   
+  // Limit iterations to avoid getting trapped in loop
   unsigned short max_iterations = 20;
   unsigned short i = 0;
   
@@ -34,6 +36,7 @@ float sqrt(float num)
   return pred;
 }
 
+// returns the mean value of an array
 float mean(float vec[], unsigned short size)
 {
   float total = 0.0f;
@@ -50,6 +53,7 @@ float mean(float vec[], unsigned short size)
   return total;
 }
 
+// returns the standard deviation squared of an array
 float std2(float vec[], unsigned short size, float mn)
 {
   float total = 0.0f;
@@ -67,6 +71,7 @@ float std2(float vec[], unsigned short size, float mn)
   return total;
 }
 
+// Aggregates contents of a fifo into a set output size
 void aggregate(struct fifo *instance, float result[], unsigned short output_size)
 {
   unsigned short interval = instance->size / output_size;
@@ -86,6 +91,7 @@ void aggregate(struct fifo *instance, float result[], unsigned short output_size
   }
 }
 
+// Calculate the different between the elements of an array and the mean of the array
 void delta_mean(struct fifo *instance, float result[], float u)
 {
   unsigned short i = 0;
@@ -96,6 +102,7 @@ void delta_mean(struct fifo *instance, float result[], float u)
   }
 }
 
+// Calculate the auto correlation of an array
 float auto_correlation(float mean_diff[], unsigned short size, unsigned short k, float o2)
 {
   unsigned short iterations = size-k;
@@ -113,6 +120,7 @@ float auto_correlation(float mean_diff[], unsigned short size, unsigned short k,
   return total;
 }
 
+// Implementation of % function with floating point arguments
 float fmod(float num1, float num2)
 {
   float res = num1/num2;
@@ -124,7 +132,7 @@ float fmod(float num1, float num2)
   return remainder;
 }
 
-// estimates sine function in bounds [0, pi]
+// estimates sine function in bounds [0, pi] (using radians) with Bhaskara I's formula
 float estim_sin(float radians)
 {
   float numerator = 16*radians*(PI-radians);
@@ -143,7 +151,7 @@ float sin(float radians)
   }
 }
 
-// implements cosine using estimations with transformations, works with bounds [0, 2*pi]
+// implements cosine using estimation with transformations, works with bounds [0, 2*pi]
 float cos(float radians)
 {
   if(radians <= PI/2){
@@ -155,6 +163,7 @@ float cos(float radians)
   }
 }
 
+// Calculates spectral density S for given value of l
 struct complex_number DFT_L(float R_hat[], unsigned short size, unsigned short l)
 {
   unsigned short k = 0;
@@ -183,6 +192,7 @@ struct complex_number DFT_L(float R_hat[], unsigned short size, unsigned short l
   return result;
 }
 
+// Calculates spectral desnity S for all values of l
 void DFT(float R_hat[], struct complex_number results[], unsigned short size)
 {
   

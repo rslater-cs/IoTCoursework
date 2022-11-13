@@ -8,6 +8,7 @@ struct fifo {
 
 unsigned short initialised = 0;
 
+// setup starting values of a fifo, can only be called once per fifo
 void init_fifo(struct fifo *instance)
 {
   if(!initialised){
@@ -18,11 +19,13 @@ void init_fifo(struct fifo *instance)
   }
 }
 
+// check if the fifo is empty
 unsigned short fifo_is_empty(struct fifo *instance)
 {
   return instance->empty;
 }
 
+// check if the fifo is full
 unsigned short fifo_is_full(struct fifo *instance)
 {
   if(fifo_is_empty(instance) == 0 && instance->r_pos == instance->w_pos){
@@ -31,6 +34,7 @@ unsigned short fifo_is_full(struct fifo *instance)
   return 0;
 }
 
+// get number of elements currently in the fifo
 unsigned short fifo_get_size(struct fifo *instance)
 {
   if(fifo_is_full(instance)){
@@ -46,6 +50,7 @@ unsigned short fifo_get_size(struct fifo *instance)
   return 0;
 }
 
+// put a element at the end of the fifo if fifo is full then start overwriting
 unsigned short fifo_put(struct fifo *instance, float item)
 {
   if(fifo_is_full(instance)){
@@ -62,6 +67,7 @@ unsigned short fifo_put(struct fifo *instance, float item)
   return 1;
 }
 
+// remove an element at the start of the fifo
 float fifo_pop(struct fifo *instance)
 {
   if(fifo_is_empty(instance)){
@@ -80,6 +86,7 @@ float fifo_pop(struct fifo *instance)
   return item;
 }
 
+// get an element from a relative position of the fifo
 float fifo_get(struct fifo *instance, unsigned short index)
 {
   unsigned short rel_index = (index+instance->r_pos) % instance->size;

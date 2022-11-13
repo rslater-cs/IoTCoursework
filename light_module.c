@@ -3,12 +3,14 @@
 #include "dev/sht11-sensor.h"
 #include <stdio.h>
 
+// initiate sensors
 void start_light()
 {
   SENSORS_ACTIVATE(light_sensor);
   SENSORS_ACTIVATE(sht11_sensor);
 }
 
+// gets adc value and converts it to useable light value in lux
 float get_light()
 {
   float lightData = (float)light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);

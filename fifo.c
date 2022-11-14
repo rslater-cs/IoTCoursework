@@ -55,6 +55,7 @@ unsigned short fifo_put(struct fifo *instance, float item)
 {
   if(fifo_is_full(instance)){
     instance->r_pos += 1;
+    instance->r_pos %= instance->size;
   }
 
   instance->empty = 0;

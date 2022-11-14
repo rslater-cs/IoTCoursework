@@ -53,12 +53,14 @@ unsigned short get_d(float num){
 //print contents of an array
 void print_arr(float vec[], unsigned short size)
 {
-  unsigned short i = 0;
+  unsigned short i = 1;
   
   printf("[");
+  printf("%c%i.%u", get_sign(vec[0]), get_i(vec[0]), get_d(vec[0]));
+  
   
   while(i < size){
-    printf("%c%i.%u ", get_sign(vec[i]), get_i(vec[i]), get_d(vec[i]));
+    printf(", %c%i.%u", get_sign(vec[i]), get_i(vec[i]), get_d(vec[i]));
     i++;
   }
   
@@ -68,14 +70,15 @@ void print_arr(float vec[], unsigned short size)
 // print contents of an array containing complex numbers
 void print_complex_numbers(struct complex_number nums[], unsigned short size)
 {
-  unsigned short j = 0;
-  
-  printf("[ ");
+  unsigned short j = 1;
+
+  printf("[%c%i.%u + %c%i.%ui", get_sign(nums[0].real), get_i(nums[0].real), get_d(nums[0].real), 
+         get_sign(nums[0].i), get_i(nums[0].i), get_d(nums[0].i));
   
   while(j < size){
     float real = nums[j].real;
     float im = nums[j].i;
-    printf("%c%i.%u + %c%i.%ui ", get_sign(real), get_i(real), get_d(real), get_sign(im), get_i(im), get_d(im));
+    printf(", %c%i.%u + %c%i.%ui", get_sign(real), get_i(real), get_d(real), get_sign(im), get_i(im), get_d(im));
     j++;
   }
   
@@ -85,13 +88,14 @@ void print_complex_numbers(struct complex_number nums[], unsigned short size)
 // print contents of a fifo
 void print_fifo(struct fifo *instance)
 {
-  int i = 0;
+  int i = 1;
   
-  printf("[ ");
+  float element = fifo_get(instance, 0);
+  printf("[%c%i.%u", get_sign(element), get_i(element), get_d(element));
   
   while(i < instance->size){
-    float num = instance->arr[i];
-    printf("%c%i.%u ", get_sign(num), get_i(num), get_d(num));
+    element = fifo_get(instance, i);
+    printf(", %c%i.%u", get_sign(element), get_i(element), get_d(element));
     i++;
   }
   printf("]\n");

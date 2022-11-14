@@ -1,4 +1,4 @@
-#define TEST_MODE 1
+#define TEST_MODE 0
 
 #include "contiki.h"
 #include <stdio.h>  // For printf()
@@ -16,8 +16,8 @@
 #include "calculations.c" // For sqrt(), mean() and std()
 #endif
 
-#define BUFFER_SIZE 4
-#define K 12
+#define BUFFER_SIZE 12
+#define K 4
 #define HIGH_ACTIVITY 500.0f
 #define MEDIUM_ACTIVITY 100.0f
 
@@ -92,33 +92,41 @@ PROCESS_THREAD(coursework, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(ev=PROCESS_EVENT_TIMER); // wait for an event
     
     // gather k light samples
-    if(counter < K){
+    if(counter < K || fifo_is_full(&reads) == 0){
       float light = get_light();
+      printf("Reading: %i\n", (int)light);
       fifo_put(&reads, light);
       counter++;
     } else{
+      printf("B = ");
+      print_fifo(&reads);
+      
       float u = mean(reads.arr, reads.size);
       float o2 = std2(reads.arr, reads.size, u);
       float o = sqrt(o2);
       
+      printf("StdDev = %c%i.%u\n", get_sign(o), get_i(o), get_d(o));
+      
       // decide on aggregation strength based on standard deviation
       unsigned short elements = BUFFER_SIZE;
       if(o < HIGH_ACTIVITY && o > MEDIUM_ACTIVITY){
-        elements = 4;
+        elements = 3;
       } else if(o < MEDIUM_ACTIVITY){
         elements = 1;
       }
       
+      printf("Aggregation = %u-into-1\n", BUFFER_SIZE/elements);
+      
       aggregate(&reads, aggregation, elements);
       
-      printf("Aggregation:\n");
+      printf("X = ");
       print_arr(aggregation, elements);
       
       // pre calculate diff between X and mean for more efficient computation
       delta_mean(&reads, x_bar, u);
       
-      printf("X-u:\n");
-      print_arr(x_bar, BUFFER_SIZE);
+//      printf("X-u:\n");
+//      print_arr(x_bar, BUFFER_SIZE);
       
       unsigned short k = 0;
       
@@ -128,13 +136,13 @@ PROCESS_THREAD(coursework, ev, data)
         k++;
       }
       
-      printf("Normalised Autocorrelation:\n");
+      printf("Normalised Autocorrelation = \n");
       print_arr(R_hat, BUFFER_SIZE);
       
       // spectral density
       DFT(R_hat, S, BUFFER_SIZE);
       
-      printf("Spectral Density:\n");
+      printf("Discrete Power Spectral Density = \n");
       print_complex_numbers(S, BUFFER_SIZE);
       
       counter = 0;

@@ -102,7 +102,7 @@ void delta_mean(struct fifo *instance, float result[], float u)
   }
 }
 
-// Calculate the auto correlation of an array
+// Calculate the normalised autocorrelation of an array
 float auto_correlation(float mean_diff[], unsigned short size, unsigned short k, float o2)
 {
   unsigned short iterations = size-k;

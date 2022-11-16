@@ -30,22 +30,22 @@ int get_i(float num)
 }
 
 // rounds integer to the nearest 10
-unsigned short round(uint32_t num){
-  uint32_t base = num/10;
-  uint32_t diff = num-(base*10);
+unsigned short round(unsigned short num){
+  unsigned short base = num/10;
+  unsigned short diff = num-(base*10);
   if(diff >= 5){
     return base+1;
   }
   return base;
 }
 
-// gets the decimal portion of a floating point to 4 d.p with rounding
+// gets the decimal portion of a floating point to 3 d.p with rounding
 unsigned short get_d(float num){
   if(num > 0.0f){
-    uint32_t dec = 100000*(num-(int)num);
+    uint32_t dec = 10000*(num-(int)num);
     return round(dec);
   }else{
-    uint32_t dec = 100000*((int)num-num);
+    uint32_t dec = 10000*((int)num-num);
     return round(dec);
   }
 }

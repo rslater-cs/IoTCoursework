@@ -50,7 +50,7 @@ PROCESS_THREAD(coursework, ev, data)
   PROCESS_BEGIN();
   
   // to gather a sample every 0.5 seconds
-  etimer_set(&timer, CLOCK_CONF_SECOND/2);
+  etimer_set(&timer, CLOCK_CONF_SECOND/2);  
   
   // Only for testing validity of calculations
   if(TEST_MODE){
@@ -59,7 +59,7 @@ PROCESS_THREAD(coursework, ev, data)
     fifo_put(&reads, 2.7f);
     fifo_put(&reads, 3.0f);
     
-    print_fifo(&reads);
+    print_fifo(&reads, 1);
     
     float u = mean(reads.arr, reads.size);
     float o2 = std2(reads.arr, reads.size, u);
@@ -67,7 +67,7 @@ PROCESS_THREAD(coursework, ev, data)
     delta_mean(&reads, x_bar, u);
     
     printf("X-u:\n");
-    print_arr(x_bar, BUFFER_SIZE);
+    print_arr(x_bar, BUFFER_SIZE, 1);
     
     unsigned short k = 0;
           
@@ -77,12 +77,12 @@ PROCESS_THREAD(coursework, ev, data)
     }
     
     printf("Normalised Autocorrelation:\n");
-    print_arr(R_hat, BUFFER_SIZE);
+    print_arr(R_hat, BUFFER_SIZE, 3);
     
     DFT(R_hat, S, BUFFER_SIZE);
           
     printf("DFT:\n");
-    print_complex_numbers(S, BUFFER_SIZE);
+    print_complex_numbers(S, BUFFER_SIZE, 3);
     
     return;
   }
@@ -99,17 +99,19 @@ PROCESS_THREAD(coursework, ev, data)
       counter++;
     } else{
       printf("B = ");
-      print_fifo(&reads);
+      print_fifo(&reads, 1);
       
       float u = mean(reads.arr, reads.size);
       float o2 = std2(reads.arr, reads.size, u);
       float o = sqrt(o2);
       
-      printf("StdDev = %c%i.%u\n", get_sign(o), get_i(o), get_d(o));
+      printf("StdDev = ");
+      print_float(o, 3);
+      printf("\n");
       
       // decide on aggregation strength based on standard deviation
       unsigned short elements = BUFFER_SIZE;
-      if(o < HIGH_ACTIVITY && o > MEDIUM_ACTIVITY){
+      if(o <= HIGH_ACTIVITY && o >= MEDIUM_ACTIVITY){
         elements = 3;
       } else if(o < MEDIUM_ACTIVITY){
         elements = 1;
@@ -120,7 +122,7 @@ PROCESS_THREAD(coursework, ev, data)
       aggregate(&reads, aggregation, elements);
       
       printf("X = ");
-      print_arr(aggregation, elements);
+      print_arr(aggregation, elements, 1);
       
       // pre calculate diff between X and mean for more efficient computation
       delta_mean(&reads, x_bar, u);
@@ -137,13 +139,13 @@ PROCESS_THREAD(coursework, ev, data)
       }
       
       printf("Normalised Autocorrelation = \n");
-      print_arr(R_hat, BUFFER_SIZE);
+      print_arr(R_hat, BUFFER_SIZE, 2);
       
       // spectral density
       DFT(R_hat, S, BUFFER_SIZE);
       
       printf("Discrete Power Spectral Density = \n");
-      print_complex_numbers(S, BUFFER_SIZE);
+      print_complex_numbers(S, BUFFER_SIZE, 4);
       
       counter = 0;
     }

@@ -2,6 +2,7 @@
 #define FIFO_C
 #include "fifo.c" // data structure to hold sensor readings
 #endif
+#include <stdio.h>
 
 #define PI 3.14159f
 

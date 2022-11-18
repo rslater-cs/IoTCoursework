@@ -20,15 +20,21 @@ unsigned short round(unsigned short num){
   return base;
 }
 
+// Outputs a floating point of defined decimal places 
 void print_float(float num, unsigned short decimal_places)
 {
   
   int int_part = (int)num;
+  
+  // check if float is positive or negative and get absolute 
+  // value of integer part
   char sign = '\0';
   if(num < 0.0f){
     int_part = int_part-(2*int_part);
     sign = '-';
   }
+  
+  // increase the factor to multiply by fot get correct decimal places
   unsigned short places = 10;
   unsigned short i = 0;
   
@@ -37,44 +43,17 @@ void print_float(float num, unsigned short decimal_places)
     i++;
   }
   
+  // Get rounded decimal part
   char frac[6];
   int decimal_part = round((int)((num - (int)num + 1.0) * places));
   if(num < 0.0f){
     decimal_part = round((int)(((int)num - num + 1.0) * places));
   }
+  
+  // copy decimal part into array, only use part of array needed for the decimal places
   sprintf(&frac[6-decimal_places], "%d", decimal_part);
   printf("%c%d.%s", sign, int_part, &frac[6-decimal_places+1]);
 }
-
-//// returns - or no char based on sign of number
-//char get_sign(float num)
-//{
-//  if(num < 0.0f){
-//    return '-';
-//  }
-//  return '\0';
-//}
-//
-//// get integer part of floating point number
-//int get_i(float num)
-//{
-//  int num_i = (int)num;
-//  if(num < 0.0f){
-//    return num_i-(2*num_i);
-//  }
-//  return num_i;
-//}
-//
-//// gets the decimal portion of a floating point to 3 d.p with rounding
-//unsigned short get_d(float num){
-//  if(num > 0.0f){
-//    uint32_t dec = 10000*(num-(int)num);
-//    return round(dec);
-//  }else{
-//    uint32_t dec = 10000*((int)num-num);
-//    return round(dec);
-//  }
-//}
 
 //print contents of an array
 void print_arr(float vec[], unsigned short size, unsigned short decimal_places)

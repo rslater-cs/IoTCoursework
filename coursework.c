@@ -29,11 +29,15 @@ PROCESS_THREAD(coursework, ev, data)
 {
   static struct etimer timer;
   
-  // create arrays for different steps of processing
+  // array for storing contents of fifo
   static float store_array[BUFFER_SIZE];
+  // array for aggregation
   static float aggregation[BUFFER_SIZE];
+  // array for subtraction of mean value
   static float x_bar[BUFFER_SIZE];
+  // array for DFT output
   static struct complex_number S[BUFFER_SIZE];
+  // array for normalised autocorrelation
   static float R_hat[BUFFER_SIZE];
   
   // start the sensors
@@ -52,7 +56,7 @@ PROCESS_THREAD(coursework, ev, data)
   // to gather a sample every 0.5 seconds
   etimer_set(&timer, CLOCK_CONF_SECOND/2);  
   
-  // Only for testing validity of calculations
+  // Only for testing validity of calculations using tutorial example
   if(TEST_MODE){
     fifo_put(&reads, 1.0f);
     fifo_put(&reads, 1.3f);
@@ -126,9 +130,6 @@ PROCESS_THREAD(coursework, ev, data)
       
       // pre calculate diff between X and mean for more efficient computation
       delta_mean(&reads, x_bar, u);
-      
-//      printf("X-u:\n");
-//      print_arr(x_bar, BUFFER_SIZE);
       
       unsigned short k = 0;
       

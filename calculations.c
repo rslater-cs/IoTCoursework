@@ -82,6 +82,8 @@ void aggregate(struct fifo *instance, float result[], unsigned short output_size
   
   while(i < output_size){
     j = 0;
+    
+    // calc mean of subarray
     result[i] = 0.0f;
     while(j < interval){
       result[i] += fifo_get(instance, i*interval+j);

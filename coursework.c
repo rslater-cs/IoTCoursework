@@ -146,7 +146,7 @@ PROCESS_THREAD(coursework, ev, data)
       DFT(R_hat, S, BUFFER_SIZE);
       
       printf("Discrete Power Spectral Density = \n");
-      print_complex_numbers(S, BUFFER_SIZE, 4);
+      print_complex_numbers(S, BUFFER_SIZE, 3);
       
       counter = 0;
     }

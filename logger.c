@@ -73,6 +73,20 @@ void print_arr(float vec[], unsigned short size, unsigned short decimal_places)
   printf("]\n");
 }
 
+void print_string(char str[], unsigned short size)
+{
+  unsigned short i = 1;
+  
+  printf("[%c", str[0]);
+  
+  while(i < size){
+    printf(", %c", str[i]);
+    i++;
+  }
+  
+  printf("]\n");
+}
+
 // print contents of an array containing complex numbers
 void print_complex_numbers(struct complex_number nums[], unsigned short size, unsigned short decimal_places)
 {

@@ -16,8 +16,8 @@
 #include "calculations.c" // For sqrt(), mean() and std()
 #endif
 
-#define BUFFER_SIZE 12
-#define K 4
+#define BUFFER_SIZE 8
+#define K 8
 #define HIGH_ACTIVITY 500.0f
 #define MEDIUM_ACTIVITY 100.0f
 
@@ -39,6 +39,14 @@ PROCESS_THREAD(coursework, ev, data)
   static struct complex_number S[BUFFER_SIZE];
   // array for normalised autocorrelation
   static float R_hat[BUFFER_SIZE];
+  // array for storing EMA
+  static float EMA_R[BUFFER_SIZE];
+  // array for storing normalisation
+  static float norm[BUFFER_SIZE];
+  // array for storing aggregation of norm
+  static float agg[BUFFER_SIZE];
+  // array for storing SAX;
+  static char sax[4];
   
   // start the sensors
   start_light();
@@ -147,6 +155,48 @@ PROCESS_THREAD(coursework, ev, data)
       
       printf("Discrete Power Spectral Density = \n");
       print_complex_numbers(S, BUFFER_SIZE, 3);
+      
+      
+      printf("B = \n");
+      print_fifo(&reads, 1);
+      
+      printf("Smoothing factor = ");
+      print_float(SMOOTHING, 1);
+      printf("\n");
+      
+      EMA(&reads, EMA_R);
+      
+      printf("EMA = \n");
+      print_arr(EMA_R, BUFFER_SIZE, 3);
+      
+      // TODO SAX, Noramlise buffer then aggregate from 8 to 4
+      // use cut off ranges to get alphabetic representation
+      
+      printf("X (light) = \n");
+      print_fifo(&reads, 1);
+      
+      printf("Avg-X = ");
+      print_float(u, 2);
+      printf("\nVar-X = ");
+      print_float(o2, 2);
+      printf("\nSTD-X = ");
+      print_float(o, 2);
+      printf("\n");
+      
+      normalise(&reads, norm, u, o);
+      
+      printf("X normalised = \n");
+      print_arr(norm, BUFFER_SIZE, 3);
+      
+      PAA(norm, agg, BUFFER_SIZE, 2);
+      
+      printf("X aggregated = \n");
+      print_arr(agg, 4, 3);
+      
+      SAX(agg, sax, 4);
+      
+      printf("SAX = \n");
+      print_string(sax, 4);
       
       counter = 0;
     }

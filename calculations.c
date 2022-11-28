@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #define PI 3.14159f
+#define SMOOTHING 0.7f
 
 struct complex_number
 {
@@ -204,5 +205,84 @@ void DFT(float R_hat[], struct complex_number results[], unsigned short size)
   while(l < size){
     results[l] = DFT_L(R_hat, size, l);
     l++;
+  }
+}
+
+void EMA_i(struct fifo *buffer, float results[], unsigned short index)
+{
+  if(index == 0 || index >= buffer->size) return;
+  
+  results[index] = SMOOTHING*fifo_get(buffer, index)+(1-SMOOTHING)*results[index-1];
+}
+
+void EMA(struct fifo *buffer, float results[])
+{
+  results[0] = fifo_get(buffer, 0);
+  
+  unsigned short i = 1;
+  
+  while(i < buffer->size){
+    EMA_i(buffer, results, i);
+    i++;
+  }
+}
+
+void normalise(struct fifo *buffer, float results[], float u, float o)
+{
+  unsigned short i = 0;
+  
+  while(i < buffer->size){
+    results[i] = (fifo_get(buffer, i)-u)/o;
+    i++;
+  }
+}
+
+void PAA(float norm[], float result[], unsigned short size, unsigned short window_size)
+{
+  unsigned short i = 0;
+  unsigned short j = 0;
+  
+  while(i < size/window_size){
+    j = 0;
+    while(j < window_size){
+      result[i] += norm[i*window_size+j];
+      j++;
+    }
+    result[i] /= window_size;
+    i++;
+  }
+}
+
+char SAX_i(float val)
+{
+  float intervals[] = {-0.84f, -0.25f, 0.25, 0.84f};
+  char symbols[] = {'A', 'B', 'C', 'D', 'E'};
+  
+  if(val <= intervals[0]){
+    return symbols[0];
+  }
+  if(val > intervals[3]){
+    return symbols[4];
+  }
+  
+  unsigned short i = 1;
+  
+  while(i < 4){
+    if(val > intervals[i-1] && val <= intervals[i]){
+      return symbols[i];
+    }
+    i++;
+  }
+  
+  return '\0';
+}
+
+void SAX(float buf[], char result[], unsigned short size)
+{
+  unsigned short i = 0;
+  
+  while(i < size){
+    result[i] = SAX_i(buf[i]);
+    i++;
   }
 }
